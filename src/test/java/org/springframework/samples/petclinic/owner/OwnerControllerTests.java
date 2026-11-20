@@ -39,6 +39,7 @@ import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.matchesPattern;
 import static org.hamcrest.Matchers.not;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -293,6 +294,17 @@ class OwnerControllerTests {
 			.andExpect(model().attribute("owner",
 					hasProperty("pets", hasItem(hasProperty("visits", hasSize(greaterThan(0)))))))
 			.andExpect(view().name("owners/ownerDetails"));
+	}
+
+	@Test
+	void showOwnerDisplaysPetAge() throws Exception {
+		Owner george = george();
+		george.getPet("Max").setBirthDate(LocalDate.now().minusYears(3));
+		given(this.owners.findById(TEST_OWNER_ID)).willReturn(Optional.of(george));
+
+		mockMvc.perform(get("/owners/{ownerId}", TEST_OWNER_ID))
+			.andExpect(status().isOk())
+			.andExpect(content().string(matchesPattern("(?s).*<dt>Age</dt>\\s*<dd>3</dd>.*")));
 	}
 
 	@Test
